@@ -1,4 +1,4 @@
-pipeline {
+\pipeline {
     agent any
 
     stages {
@@ -13,7 +13,7 @@ pipeline {
             steps {
                 echo 'Running tests...'
                 // Simulate test log creation
-                sh 'echo "Test Logs: All tests passed." > test-results.log'
+                bat 'echo "Test Logs: All tests passed." > test-results.log'
             }
             post {
                 always {
@@ -32,7 +32,7 @@ pipeline {
             steps {
                 echo 'Running security scan...'
                 // Simulate security scan log
-                sh 'echo "Security scan completed with no issues." > security-scan.log'
+                bat 'echo "Security scan completed with no issues." > security-scan.log'
             }
             post {
                 always {
