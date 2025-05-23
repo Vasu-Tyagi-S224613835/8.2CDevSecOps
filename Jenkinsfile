@@ -5,46 +5,34 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Running build...'
-                // Add actual build steps here
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Running tests...'
-                // Simulate test log creation
-                bat 'echo "Test Logs: All tests passed." > test-results.log'
-            }
-            post {
-                always {
-                    emailext (
-                        subject: "Test Stage: ${currentBuild.currentResult}",
-                        body: "Test stage finished with status: ${currentBuild.currentResult}",
-                        to: 'vasutyagi13@gmail.com',
-                        attachmentsPattern: 'test-results.log',
-                        mimeType: 'text/plain'
-                    )
-                }
+                bat 'echo "All tests passed." > test-results.log'
             }
         }
 
         stage('Security Scan') {
             steps {
                 echo 'Running security scan...'
-                // Simulate security scan log
-                bat 'echo "Security scan completed with no issues." > security-scan.log'
-            }
-            post {
-                always {
-                    emailext (
-                        subject: "Security Scan Stage: ${currentBuild.currentResult}",
-                        body: "Security scan finished with status: ${currentBuild.currentResult}",
-                        to: 'vasutyagi13@gmail.com',
-                        attachmentsPattern: 'security-scan.log',
-                        mimeType: 'text/plain'
-                    )
-                }
+                bat 'echo "No issues found." > security-scan.log'
             }
         }
     }
+
+    post {
+        always {
+            emailext(
+                subject: "Jenkins Job '${env.JOB_NAME} [#${env.BUILD_NUMBER}]' - ${currentBuild.currentResult}",
+                body: """<p>Job '${env.JOB_NAME}' (Build #${env.BUILD_NUMBER}) finished with status: <b>${currentBuild.currentResult}</b></p>
+                         <p>Check the console output at <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
+                mimeType: 'text/html',
+                to: 'vasutyagi13@gmail.com'
+            )
+        }
+    }
 }
+
