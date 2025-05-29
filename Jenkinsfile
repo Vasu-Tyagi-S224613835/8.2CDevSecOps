@@ -30,7 +30,8 @@ pipeline {
                 body: """<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b></p>
                          <p>Console: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
                 mimeType: 'text/html',
-                to: 'vasutyagi13@gmail.com'
+                to: 'vasutyagi13@gmail.com',
+                attachmentsPattern: 'test-results.log'
             )
         }
     }
