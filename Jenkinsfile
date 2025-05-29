@@ -24,25 +24,38 @@ pipeline {
 
         stage('Generate Detailed Log') {
             steps {
-                bat '''
-                    echo Build Number: %BUILD_NUMBER% > detailed-log.txt
-                    echo Job Name: %JOB_NAME% >> detailed-log.txt
-                    echo Result: %BUILD_STATUS% >> detailed-log.txt
-                    echo Build URL: %BUILD_URL% >> detailed-log.txt
-                    echo. >> detailed-log.txt
-                    echo Started by: %BUILD_USER% >> detailed-log.txt
-                    echo. >> detailed-log.txt
-                    echo Build Duration: %BUILD_DURATION% >> detailed-log.txt
-                    echo. >> detailed-log.txt
-                    echo Revision: >> detailed-log.txt
-                    git rev-parse HEAD >> detailed-log.txt 2>nul
-                    echo. >> detailed-log.txt
-                    echo Repository: >> detailed-log.txt
-                    git config --get remote.origin.url >> detailed-log.txt 2>nul
-                    echo. >> detailed-log.txt
-                    echo Changes: >> detailed-log.txt
-                    git log -1 --pretty=format:"%%s (%%an)" >> detailed-log.txt 2>nul
-                '''
+                script {
+                    def userCause = currentBuild.rawBuild.getCause(hudson.model.Cause.UserIdCause)
+                    def user = userCause != null ? userCause.getUserName() : 'unknown'
+
+                    def duration = currentBuild.durationString ?: 'unknown'
+                    def status = currentBuild.currentResult ?: 'UNKNOWN'
+
+                    def gitCommit = bat(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    def gitRepo = bat(script: 'git config --get remote.origin.url', returnStdout: true).trim()
+                    def gitLog = bat(script: 'git log -1 --pretty=format:"%s (%an)"', returnStdout: true).trim()
+
+                    def text = """
+Build Number: ${env.BUILD_NUMBER}
+Job Name: ${env.JOB_NAME}
+Status: ${status}
+Build URL: ${env.BUILD_URL}
+
+Started by: ${user}
+
+Build Duration: ${duration}
+
+Revision:
+${gitCommit}
+
+Repository:
+${gitRepo}
+
+Changes:
+${gitLog}
+"""
+                    writeFile file: 'detailed-log.txt', text: text
+                }
             }
         }
     }
