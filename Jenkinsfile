@@ -39,10 +39,10 @@ pipeline {
         always {
             emailext (
                 subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-                body: """<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b></p>
+                body: '''<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b></p>
                          <p>Console Output (last 500 lines):</p>
                          <pre>${BUILD_LOG, maxLines=500, escapeHtml=true}</pre>
-                         <p>Full console output: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
+                         <p>Full console output: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>''',
                 mimeType: 'text/html',
                 to: 'vasutyagi13@gmail.com',
                 attachmentsPattern: 'detailed-log.txt'
