@@ -9,6 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Running build...'
+                // Simulate build step
             }
         }
 
@@ -57,7 +58,11 @@ Changes:
 ${gitLog}
 """
 
+                    // Write detailed log to result.log file
                     writeFile file: 'result.log', text: detailedLog
+
+                    // Save to env var to reuse in email body
+                    env.DETAILED_LOG_BODY = detailedLog.replace('\n', '<br>')
                 }
             }
         }
@@ -68,6 +73,8 @@ ${gitLog}
             emailext (
                 subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
                 body: """<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b>.</p>
+                         <p>Please find the attached detailed build log file.</p>
+                         <p><b>Detailed Log:</b><br>${env.DETAILED_LOG_BODY}</p>
                          <p>Console Output: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
                 mimeType: 'text/html',
                 to: 'vasutyagi13@gmail.com',
