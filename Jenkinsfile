@@ -1,10 +1,16 @@
 pipeline {
     agent any
 
+    environment {
+        // If Build User Vars plugin installed, this will hold username of who triggered the build
+        BUILD_USER = "${env.BUILD_USER ?: 'unknown'}"
+    }
+
     stages {
         stage('Build') {
             steps {
                 echo 'Running build...'
+                // Simulate build step
             }
         }
 
@@ -25,17 +31,16 @@ pipeline {
         stage('Generate Detailed Log') {
             steps {
                 script {
-                    def userCause = currentBuild.rawBuild.getCause(hudson.model.Cause.UserIdCause)
-                    def user = userCause != null ? userCause.getUserName() : 'unknown'
-
-                    def duration = currentBuild.durationString ?: 'unknown'
+                    def user = env.BUILD_USER ?: 'unknown'
                     def status = currentBuild.currentResult ?: 'UNKNOWN'
+                    def duration = currentBuild.durationString ?: 'unknown'
 
+                    // Get git info (using bat on Windows)
                     def gitCommit = bat(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     def gitRepo = bat(script: 'git config --get remote.origin.url', returnStdout: true).trim()
                     def gitLog = bat(script: 'git log -1 --pretty=format:"%s (%an)"', returnStdout: true).trim()
 
-                    def text = """
+                    def detailedLog = """
 Build Number: ${env.BUILD_NUMBER}
 Job Name: ${env.JOB_NAME}
 Status: ${status}
@@ -54,7 +59,8 @@ ${gitRepo}
 Changes:
 ${gitLog}
 """
-                    writeFile file: 'detailed-log.txt', text: text
+
+                    writeFile file: 'detailed-log.txt', text: detailedLog
                 }
             }
         }
@@ -64,8 +70,8 @@ ${gitLog}
         always {
             emailext (
                 subject: "Build ${env.JOB_NAME} #${env.BUILD_NUMBER} - ${currentBuild.currentResult}",
-                body: """<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b></p>
-                         <p>Console: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
+                body: """<p>Build <b>${env.JOB_NAME} #${env.BUILD_NUMBER}</b> finished with status <b>${currentBuild.currentResult}</b>.</p>
+                         <p>Console Output: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
                 mimeType: 'text/html',
                 to: 'vasutyagi13@gmail.com',
                 attachmentsPattern: 'detailed-log.txt'
