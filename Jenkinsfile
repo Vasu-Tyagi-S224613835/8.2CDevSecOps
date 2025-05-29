@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // If Build User Vars plugin installed, this will hold username of who triggered the build
         BUILD_USER = "${env.BUILD_USER ?: 'unknown'}"
     }
 
@@ -10,7 +9,6 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Running build...'
-                // Simulate build step
             }
         }
 
@@ -35,7 +33,6 @@ pipeline {
                     def status = currentBuild.currentResult ?: 'UNKNOWN'
                     def duration = currentBuild.durationString ?: 'unknown'
 
-                    // Get git info (using bat on Windows)
                     def gitCommit = bat(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     def gitRepo = bat(script: 'git config --get remote.origin.url', returnStdout: true).trim()
                     def gitLog = bat(script: 'git log -1 --pretty=format:"%s (%an)"', returnStdout: true).trim()
@@ -60,7 +57,7 @@ Changes:
 ${gitLog}
 """
 
-                    writeFile file: 'detailed-log.txt', text: detailedLog
+                    writeFile file: 'result.log', text: detailedLog
                 }
             }
         }
@@ -74,7 +71,7 @@ ${gitLog}
                          <p>Console Output: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>""",
                 mimeType: 'text/html',
                 to: 'vasutyagi13@gmail.com',
-                attachmentsPattern: 'detailed-log.txt'
+                attachmentsPattern: 'result.log'
             )
         }
     }
